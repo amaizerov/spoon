@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.regex.Pattern;
+
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -52,7 +53,8 @@ public final class SpoonRule implements TestRule {
   private String className;
   private String methodName;
 
-  @Override public Statement apply(Statement base, Description description) {
+  @Override
+  public Statement apply(Statement base, Description description) {
     className = description.getClassName();
     methodName = description.getMethodName();
     return base; // Pass-through. We're just here to capture the description information.
@@ -63,7 +65,7 @@ public final class SpoonRule implements TestRule {
       throw new IllegalArgumentException("Tag must match " + TAG_VALIDATION.pattern() + ".");
     }
     File screenshotDirectory =
-        obtainDirectory(activity.getApplicationContext(), className, methodName, SPOON_SCREENSHOTS);
+            obtainDirectory(activity.getApplicationContext(), className, methodName, SPOON_SCREENSHOTS);
     String screenshotName = System.currentTimeMillis() + NAME_SEPARATOR + tag + EXTENSION;
     File screenshotFile = new File(screenshotDirectory, screenshotName);
     Bitmap bitmap = Screenshot.capture(tag, activity);
@@ -93,7 +95,7 @@ public final class SpoonRule implements TestRule {
   }
 
   private static File obtainDirectory(Context context, String testClassName,
-      String testMethodName, String directoryName) {
+                                      String testMethodName, String directoryName) {
     File directory;
     if (SDK_INT >= LOLLIPOP) {
       // Use external storage.
@@ -130,6 +132,12 @@ public final class SpoonRule implements TestRule {
   private static void copyFile(File source, File target) throws IOException {
     Log.d(TAG, "Will copy " + source + " to " + target);
 
+    if (target.exists()) {
+      if (!target.delete()) {
+        Log.d(TAG, "Target file already created. Can't delete file" + target);
+      }
+    }
+
     if (!target.createNewFile()) {
       throw new RuntimeException("Couldn't create file " + target);
     }
@@ -151,10 +159,12 @@ public final class SpoonRule implements TestRule {
     } finally {
       try {
         is.close();
-      } catch (IOException ie) {}
+      } catch (IOException ie) {
+      }
       try {
         os.close();
-      } catch (IOException ie) {}
+      } catch (IOException ie) {
+      }
     }
   }
 
